@@ -1,0 +1,50 @@
+Bem-vindo ao LABIRINTO de IC, JOGADOR TESTE!
+
+ENTRADA DO LABIRINTO
+Voce esta na entrada do labirinto e precisa decidir qual direcao seguir.
+D - Ir para a direita
+E - Ir para a esquerda
+
+Opcao escolhida: E
+
+PASSAGEM BLOQUEADA
+Voce encontrou uma passagem bloqueada com uma fechadura. O que deseja fazer?
+A - Tentar desbloquear a passagem
+B - Voltar a entrada do labirinto
+
+Opcao escolhida: A
+So eh possivel desbloquear a passagem com uma chave. Permanecendo na posicao...
+
+PASSAGEM BLOQUEADA
+Voce encontrou uma passagem bloqueada com uma fechadura. O que deseja fazer?
+A - Tentar desbloquear a passagem
+B - Voltar a entrada do labirinto
+
+Opcao escolhida: B
+
+ENTRADA DO LABIRINTO
+Voce esta na entrada do labirinto e precisa decidir qual direcao seguir.
+D - Ir para a direita
+E - Ir para a esquerda
+
+Opcao escolhida: D
+
+CAMINHO SEM SAIDA
+Voce encontrou um caminho sem saida, porem ha uma chave caida no chao.
+Digite qualquer tecla + <ENTER> para pegar a chave e retornar a entrada do labirinto... a
+
+ENTRADA DO LABIRINTO
+Voce esta na entrada do labirinto e precisa decidir qual direcao seguir.
+D - Ir para a direita
+E - Ir para a esquerda
+
+Opcao escolhida: E
+
+PASSAGEM BLOQUEADA
+Voce encontrou uma passagem bloqueada com uma fechadura. O que deseja fazer?
+A - Tentar desbloquear a passagem
+B - Voltar a entrada do labirinto
+
+Opcao escolhida: A
+
+PARABENS! Voce conseguiu desbloquear a passagem com a chave e sair do labirinto!

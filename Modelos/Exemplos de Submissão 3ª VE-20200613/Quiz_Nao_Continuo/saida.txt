@@ -1,0 +1,22 @@
+Bem-vindo ao QUIZ do QEM, JOGADOR TESTE!
+
+PERGUNTA 1
+Quem eh o patrono do QEM?
+A - Caxias
+B - Ricardo Franco
+C - Sampaio
+D - Osorio
+E - Mallet
+
+Opcao escolhida: B
+
+PERGUNTA 2
+Em que dia eh comemorado o dia do QEM?
+A - 19 de abril
+B - 24 de maio
+C - 10 de junho
+D - 3 de agosto
+E - 10 de maio
+
+Opcao escolhida: D
+PARABENS! Voce acertou todas as perguntas!
