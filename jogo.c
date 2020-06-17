@@ -11,13 +11,13 @@ Programa em C que implementa um jogo de labirinto
 #include<string.h>
 
 ////////////////////////DEFINICAO DE CONSTANTES////////////////////////
-#define NOME_ARQUIVO_ENTRADA "entrada.txt" 
-#define NOME_ARQUIVO_SAIDA "saida.txt" 
+#define NOME_ARQUIVO_ENTRADA "entrada.txt"
+#define NOME_ARQUIVO_SAIDA "saida.txt"
 #define MAX_OPCOES 10
 
 //////////////////////////DEFINICAO DE ENUMS//////////////////////////
 typedef enum _tipo_no {
-	raiz, nao_terminal, terminal
+	raiz, nao_terminal, terminal_repetir, terminal
 } tipo_no;
 
 /////////////////////////DEFINICAO DE STRUCTS/////////////////////////
@@ -34,7 +34,13 @@ typedef struct _no {
 	opcao opcoes[MAX_OPCOES];
 	struct _no *ant;
 	struct _no *prox;
+	int (*fun_ptr)();
 } no;
+
+typedef struct _pergunta {
+    char enunciado[200];
+    char resposta;
+} pergunta;
 
 /////////////////////////VARIAVEIS GLOBAIS//////////////////////////
 //Referencia para o inicio e para a posicao atual na lista encadeada
@@ -43,10 +49,11 @@ no *ptr_inicio, *ptr_atual;
 FILE *arquivo_saida;
 //Criterios globais
 int chave = 0;
+int dias_punido = 0;
 
 ////////////////////////////PROTOTIPOS//////////////////////////////
 char *ler_nome_jogador(char *nome_arquivo);
-void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *opcoes);
+void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *opcoes, int (*fun_ptr)());
 void cadastrar_nos();
 no *buscar_no(int indice);
 int ler_indice_proximo_no(char opcao);
@@ -54,29 +61,82 @@ int verificar_criterio_acesso(int indice);
 void atualizar_criterios_globais(int indice);
 void apagar_lista();
 
+/*Minigames*/
+int minigame_continencia_andando() {
+    const int linhas = 3, colunas = 11;
+    char espaco[linhas][colunas];
+    //Preencher matriz com espaços
+    for (int i = 0; i < linhas; i++)
+        for (int j = 0; j < colunas; j++)
+            espaco[i][j] = ' ';
+    //Posicionar oficial
+    const int linha_oficial = linhas-1, coluna_oficial = colunas/2;
+    espaco[linha_oficial][coluna_oficial] = 'o';
+    //Posicionar aluno
+    const int linha_aluno = 0;
+    int coluna_aluno = 0;
+    espaco[linha_aluno][coluna_aluno] = 'o';
+    //Execução
+    char movimento;
+    int continencia = 0;
+    while (coluna_aluno != colunas) {
+        puts("Pressione <ENTER> para avancar e <SPACE>+<ENTER> para prestar ou desfazer continencia");
+        //Imprimir matriz
+        for (int i = -1; i <= linhas; i++) {
+            for (int j = 0; j < colunas; j++) {
+                if (i == -1 || i == linhas)
+                    putchar('-');
+                else
+                    printf("%c", espaco[i][j]);
+            }
+            putchar('\n');
+        }
+        //Receber e executar comando
+        fflush(stdin);
+        movimento = (char) getchar();
+        fflush(stdin);
+        if (movimento == ' ')
+            continencia = !continencia;
+        else if (movimento != '\n')
+            continue;
+        espaco[linha_aluno][coluna_aluno++] = ' ';
+        espaco[linha_aluno][coluna_aluno] = continencia ? '*' : 'o';
+        //Checar continencia
+        const int distancia_continencia = 2;
+        int distancia = coluna_oficial-coluna_aluno;
+        if (continencia && (distancia > distancia_continencia || coluna_aluno > coluna_oficial))
+            return 0;
+        if (!continencia && distancia >= 0 && distancia <= distancia_continencia)
+            return 0;
+    }
+    return 1;
+}
+
 ///////////////////////////////MAIN///////////////////////////////
-int main() { 
-	
+int main() {
+
 	//Abertura do arquivo de saida
 	if (!(arquivo_saida = fopen(NOME_ARQUIVO_SAIDA, "w"))) {
 		printf("ERRO AO ABRIR O ARQUIVO DE SAIDA!");
-		exit(1); 
+		exit(1);
 	}
-	
+
 	//Mensagem de boas-vindas
 	char nome_jogador[100];
 	strcpy(nome_jogador, ler_nome_jogador(NOME_ARQUIVO_ENTRADA));
 	printf("Bem-vindo ao LABIRINTO de IC, %s!\n", nome_jogador);
 	fprintf(arquivo_saida, "Bem-vindo ao LABIRINTO de IC, %s!\n", nome_jogador);
-	
+
 	//Montagem dos nos do jogo em uma lista encadeada
 	cadastrar_nos();
-	
+
 	//Carregar no raiz
 	ptr_atual = buscar_no(0);
 
 	//laco de controle do jogo
 	while(1) {
+        if (ptr_atual->fun_ptr != NULL)
+            ptr_atual->fun_ptr();
 		//Se no nao eh terminal, apresentar texto e ler a opcao selecionada
 		if(ptr_atual->tipo != terminal) {
 			int indice_proximo_no = -1;
@@ -108,10 +168,10 @@ int main() {
 			break;
 		}
 	}
-	
+
 	//Apagar toda a lista e liberar espaco de memoria alocado
 	apagar_lista();
-	
+
 	//Fechar o arquivo de saida
 	fclose(arquivo_saida);
 }
@@ -126,7 +186,7 @@ char *ler_nome_jogador(char *nome_arquivo) {
 	if (arquivo_entrada == NULL) {
 		printf("\nERRO AO ABRIR O ARQUIVO DE ENTRADA!");
 		fprintf(arquivo_saida, "\nERRO AO ABRIR O ARQUIVO DE ENTRADA!");
-		exit(1); 
+		exit(1);
 	}
 	//Ler nome do jogador no arquivo
 	if(!feof(arquivo_entrada)) {
@@ -139,7 +199,7 @@ char *ler_nome_jogador(char *nome_arquivo) {
 }
 
 //Funcao que cadastra um novo no na lista encadeada
-void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *opcoes) {
+void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *opcoes, int (*fun_ptr)()) {
 	//Alocar memoria para o novo no
 	no *ptr = (no *) malloc(sizeof(no));
 	if(ptr == NULL) {
@@ -156,9 +216,10 @@ void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *op
 		ptr->opcoes[i] = opcoes[i];
 	ptr->ant = NULL;
 	ptr->prox = NULL;
+	ptr->fun_ptr = fun_ptr;
 	//Encadear novo no na lista
 	no *ptr_aux = ptr_inicio;
-	if(ptr_aux != NULL) { //Lista n�o-vazia
+	if(ptr_aux != NULL) { //Lista não-vazia
 		while(ptr_aux->prox != NULL)
 			ptr_aux = ptr_aux->prox;
 		ptr_aux->prox = ptr;
@@ -171,16 +232,16 @@ void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *op
 //Funcao que cadastra todos os nos da lista encadeada (carregamento da lista)
 void cadastrar_nos() {
 	opcao opcoes_0[2] = {{'D', 1}, {'E', 2}};
-	cadastrar_no(0, 
-		"\nENTRADA DO LABIRINTO\nVoce esta na entrada do labirinto e precisa decidir qual direcao seguir.\nD - Ir para a direita\nE - Ir para a esquerda\n\nOpcao escolhida: ", 
-		raiz, 2, opcoes_0);
-	opcao opcoes_1[1] = {{'*', 0}};	
-	cadastrar_no(1, "\nCAMINHO SEM SAIDA\nVoce encontrou um caminho sem saida, porem ha uma chave caida no chao.\nDigite qualquer tecla + <ENTER> para pegar a chave e retornar a entrada do labirinto... ", 
-		nao_terminal, 1, opcoes_1);
-	opcao opcoes_2[2] = {{'A', 3}, {'B', 0}};	
-	cadastrar_no(2, "\nPASSAGEM BLOQUEADA\nVoce encontrou uma passagem bloqueada com uma fechadura. O que deseja fazer?\nA - Tentar desbloquear a passagem\nB - Voltar a entrada do labirinto\n\nOpcao escolhida: ", 
-		nao_terminal, 2, opcoes_2);
-	cadastrar_no(3, "\nPARABENS! Voce conseguiu desbloquear a passagem com a chave e sair do labirinto!", terminal, 0, NULL);
+	cadastrar_no(0,
+		"\nENTRADA DO LABIRINTO\nVoce esta na entrada do labirinto e precisa decidir qual direcao seguir.\nD - Ir para a direita\nE - Ir para a esquerda\n\nOpcao escolhida: ",
+		raiz, 2, opcoes_0, NULL);
+	opcao opcoes_1[1] = {{'*', 0}};
+	cadastrar_no(1, "\nCAMINHO SEM SAIDA\nVoce encontrou um caminho sem saida, porem ha uma chave caida no chao.\nDigite qualquer tecla + <ENTER> para pegar a chave e retornar a entrada do labirinto... ",
+		nao_terminal, 1, opcoes_1, NULL);
+	opcao opcoes_2[2] = {{'A', 3}, {'B', 0}};
+	cadastrar_no(2, "\nPASSAGEM BLOQUEADA\nVoce encontrou uma passagem bloqueada com uma fechadura. O que deseja fazer?\nA - Tentar desbloquear a passagem\nB - Voltar a entrada do labirinto\n\nOpcao escolhida: ",
+		nao_terminal, 2, opcoes_2, minigame_continencia_andando);
+	cadastrar_no(3, "\nPARABENS! Voce conseguiu desbloquear a passagem com a chave e sair do labirinto!", terminal, 0, NULL, NULL);
 }
 
 //Funcao que busca um no a partir do seu indice
@@ -194,7 +255,7 @@ no *buscar_no(int indice) {
 				return ptr_aux;
 			ptr_aux = ptr_aux->prox;
 		}
-		return NULL;		
+		return NULL;
 	}
 }
 
@@ -212,7 +273,7 @@ int ler_indice_proximo_no(char opcao) {
 	}
 }
 
-//Funcao que verifica se o acesso para um no de determinado indice esta liberado 
+//Funcao que verifica se o acesso para um no de determinado indice esta liberado
 int verificar_criterio_acesso(int indice) {
 	if(indice == 1 && chave == 1) {
 		printf("Voce ja pegou a chave nesta parte do labirinto. Permanecendo na entrada...\n");
@@ -224,13 +285,13 @@ int verificar_criterio_acesso(int indice) {
 		fprintf(arquivo_saida, "So eh possivel desbloquear a passagem com uma chave. Permanecendo na posicao...\n");
 		return 0;
 	}
-	return 1;;	
+	return 1;;
 }
 
 //Funcao que atualiza as variaveis globais relacionadas aos criterios de acesso aos nos, caso necessario
 void atualizar_criterios_globais(int indice) {
 	if(indice == 1)
-		chave = 1;	
+		chave = 1;
 }
 
 //Funcao que apaga toda a lista, liberando os espacos de memorias alocados
