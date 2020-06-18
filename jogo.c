@@ -18,7 +18,7 @@ Programa em C que implementa um jogo de labirinto
 
 //////////////////////////DEFINICAO DE ENUMS//////////////////////////
 typedef enum _tipo_no {
-	raiz, nao_terminal, terminal_repetir, terminal
+	raiz, nao_terminal, reinicio, terminal
 } tipo_no;
 
 /////////////////////////DEFINICAO DE STRUCTS/////////////////////////
