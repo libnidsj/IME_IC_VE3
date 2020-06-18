@@ -398,6 +398,106 @@ int encontrar_sargenteante(){
 }
 
 int encontrar_general(){
+	char resposta, resposta2;
+	int validade = 1;
+	
+	printf("Voce entrou no elevador!\n");
+	printf("Para sua surpresa, o general logo tambem entra no andar de baixo e prontamente te deseja um \"Bom-dia!\"\n");
+	printf("\nO que voce vai fazer?\n");
+	
+	do{
+	printf("\nA - Estender a mao para cumprimenta-lo\nB - Permanecer na posicao de sentido calado\nC - Responder \"E ai chefinho?\"\nD - Responder \"Bom dia, senhor general!\", prestar continencia e permanecer na posicao de sentido\n\nOpcao selecionada: ");
+	scanf(" %c", &resposta);
+	
+	if(resposta != 'A' && resposta != 'B' && resposta != 'C' && resposta != 'D' && resposta != 'a' && resposta != 'b' && resposta != 'c' && resposta != 'd'){
+		printf("\nOpcao invalida!\n");
+		validade = 0;
+	}
+	else validade = 1;
+	 
+	}while(validade == 0);
+	
+	switch(resposta){
+		
+		case 'A':
+		case 'a':
+			printf("\nAluno bizonho! A iniciativa do aperto de mao vem do militar mais antigo!\nTorrado! Duvidas?");
+			return 0;
+		
+		case 'B':
+		case 'b':
+			printf("\nO general te deseja um \"Bom-dia!\" de maneira mais energica e clara.\nO que voce vai fazer?\n");
+			
+			do{
+				printf("\nA - Permanecer calado\nB - Responder \"Bom dia, senhor general!\", prestar continencia e permanecer na posicao de sentido.\n\nOpcao selecionada: ");
+					scanf(" %c", &resposta2);
+				if(resposta2 != 'A' && resposta2 != 'a' && resposta2 != 'B' && resposta2 != 'b'){
+						printf("\nOpcao invalida!\n");
+						validade = 0;	
+				}
+				else validade = 1;
+				
+			}while(validade == 0);
+			
+				switch(resposta2){
+					
+					case 'A':
+					case 'a':
+						printf("\nAluno ignorou o general!\nTorrado! Duvidas?");
+						return 0;
+					
+					case 'B':
+					case 'b':
+						printf("\nPreste mais atencao, voce pode ser torrado na proxima vez...\n");
+						break;
+				}
+				
+			break;
+			
+		case 'C':
+		case 'c':
+			printf("\nNao tenho nem o que dizer sobre isso...\nTorrado! Duvidas?");
+			return 0;
+		
+		case 'D':
+		case 'd':
+			break;			
+	}
+	
+	printf("\n-Excelente dia, aluno. Como foi esse periodo de EAD? Pergunta o general");
+	
+	do{
+		printf("\nSelecione uma resposta:\n\n");
+		printf("A - \"Muito bom! Consegui colocar o sono em dia! Marcava presenca no EAD e voltava para a cama!\"\nB - \"Nao achei muito produtivo... foi dificil acompanhar a materia\"\nC - \"Achei bom, aprendi muito com o EAD!\"\n\nOpcao selecionada: ");
+		scanf(" %c", &resposta);
+		
+		if(resposta != 'A' && resposta != 'a' && resposta != 'B' && resposta != 'b' && resposta != 'C' && resposta != 'c'){
+						printf("\nOpcao invalida!\n");
+						validade = 0;
+		}
+		else validade = 1;
+		
+	}while(validade == 0);
+		
+	switch(resposta){
+		
+		case 'A':
+		case 'a':
+			printf("\nGolpe do aluno plotado pelo general!\nTorrado! Duvidas?");
+			return 0;
+		
+		case 'B':
+		case 'b':
+			printf("\n-Tenho certeza que voce vai conseguir!\n");
+			break;
+			
+		case 'C':
+		case 'c':
+			printf("\n-Que bom! Com esse desempenho todo, voce sera o proximo auxiliar de comando!\n");
+			break;
+	}
+	
+	printf("\nVoce e o general saem do elevador e seguem caminhos diferentes...\nVoce nao foi torrado, por enquanto...\n");
 	return 1;
 }
 
