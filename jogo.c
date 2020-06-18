@@ -112,8 +112,10 @@ int main() {
 				char opcao;
 				printf("%s", ptr_atual->texto);
 				fprintf(arquivo_saida, "%s", ptr_atual->texto);
-				scanf(" %c", &opcao);
-				fprintf(arquivo_saida, "%c\n", opcao);
+				if(ptr_atual->n_opcoes > 1){
+					scanf(" %c", &opcao);
+					fprintf(arquivo_saida, "%c\n", opcao);
+				}
 
 				//Ler proximo no a partir da opcao
 				indice_proximo_no = ler_indice_proximo_no(opcao);
@@ -215,20 +217,47 @@ void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *op
 //Funcao que cadastra todos os nos da lista encadeada (carregamento da lista)
 void cadastrar_nos() {
 	
-	opcao opcoes_0[4] = {{'A',1},{'B',1},{'C',1},{'D',2}};
-	
-	cadastrar_no(0,"\nVoce chegou ao rancho!\nAgora, o que deseja fazer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nD-Consultar Sargenteante\nOpcao escolhida:  ",raiz,4,opcoes_0,NULL);
+	/* Bifurcação */
+	/* Caminho 1 */
+	opcao opcoes_0[1] = {{'*',8}};
+	cadastrar_no(0,"",raiz,0,NULL,encontrar_general);
 
-	cadastrar_no(1,"Nao esqueceu de nada?\nTorrado!Duvidas?",reinicio,0,NULL,NULL);
+	/* Caminho 2 */
+	opcao opcoes_1[2] = {{'D',4}, {'E', 3}};
+	cadastrar_no(1,"Voce esta no segundo piso, pode ir a: D- Direita, E- Esquerda",nao_terminal,0,NULL,NULL);
 
-	opcao opcoes_2[3] = {{'A',3},{'B',4},{'C',5}};
-	cadastrar_no(2,"\nAgora que voce esta arranchado, o que deseja comer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nOpcao escolhida:  ",nao_terminal,3,opcoes_4,encontrar_sargenteante);
+	opcao opcoes_2[1] = {{'*',3}};
+	cadastrar_no(2,"",nao_terminal,1,opcoes_2,verificar_fardamento);
 
-	cadastrar_no(3,"Passou mal no TFM!\nTorrado\nDuvidas?",reinicio,0,NULL,NULL);
+	opcao opcoes_3[1] = {{'*',8}};
+	cadastrar_no(3,"",nao_terminal,1,opcoes_3,gd_surpresa);
 
-	cadastrar_no(4,"Paisanaria!\nTorrado!\nDuvidas?",reinicio,0,NULL,NULL);
+	opcao opcoes_4[1] = {{'*',5}};
+	cadastrar_no(4,"",nao_terminal,1,opcoes_4,encontrar_professor);
 
-	cadastrar_no(5,"Parabens!\nVoce nao foi torrado esse fim de semana!",terminal,0,NULL,NULL);
+	opcao opcoes_5[2] = {{'A',6}, {'B',7}};
+	cadastrar_no(5,"Agora, voce deseja: A- volta, B- seguir pelo corredor?",nao_terminal,2,opcoes_5,verificar_fardamento);
+
+	opcao opcoes_6[1] = {{'*',8}};
+	cadastrar_no(6,"",nao_terminal,1,opcoes_6,gd_surpresa);
+
+	opcao opcoes_7[1] = {{'*',8}};
+	cadastrar_no(7,"",nao_terminal,1,opcoes_7,encontrar_oficial);
+
+	/* Fim da bifurcação */
+	opcao opcoes_8[4] = {{'A',1},{'B',1},{'C',1},{'D',2}};
+	cadastrar_no(8,"\nVoce chegou ao rancho!\nAgora, o que deseja fazer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nD-Consultar Sargenteante\nOpcao escolhida:  ",nao_terminal,4,opcoes_8,NULL);
+
+	cadastrar_no(9,"Nao esqueceu de nada?\nTorrado!Duvidas?",reinicio,0,NULL,NULL);
+
+	opcao opcoes_10[3] = {{'A',3},{'B',4},{'C',5}};
+	cadastrar_no(10,"\nAgora que voce esta arranchado, o que deseja comer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nOpcao escolhida:  ",nao_terminal,3,opcoes_10,encontrar_sargenteante);
+
+	cadastrar_no(11,"Passou mal no TFM!\nTorrado\nDuvidas?",reinicio,0,NULL,NULL);
+
+	cadastrar_no(12,"Paisanaria!\nTorrado!\nDuvidas?",reinicio,0,NULL,NULL);
+
+	cadastrar_no(13,"Parabens!\nVoce nao foi torrado esse fim de semana!",terminal,0,NULL,NULL);
 		
 }
 
