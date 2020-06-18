@@ -66,6 +66,9 @@ void apagar_lista();
 /* Minigames */
 int encontrar_oficial();
 int encontrar_sargenteante();
+int encontrar_general();
+int gd_surpresa();
+int encontrar_professor();
 
 /* Funções auxiliares */
 int aleatorio(int val_min, int val_max);		/* Função que gera um número aleatório entre 0 e o máximo dado */
@@ -115,6 +118,8 @@ int main() {
 				if(ptr_atual->n_opcoes > 1){
 					scanf(" %c", &opcao);
 					fprintf(arquivo_saida, "%c\n", opcao);
+				} else {
+					opcao = '*';
 				}
 
 				//Ler proximo no a partir da opcao
@@ -220,11 +225,11 @@ void cadastrar_nos() {
 	/* Bifurcação */
 	/* Caminho 1 */
 	opcao opcoes_0[1] = {{'*',8}};
-	cadastrar_no(0,"",raiz,0,NULL,encontrar_general);
+	cadastrar_no(0,"",raiz,1,opcoes_0,encontrar_general);
 
 	/* Caminho 2 */
 	opcao opcoes_1[2] = {{'D',4}, {'E', 3}};
-	cadastrar_no(1,"Voce esta no segundo piso, pode ir a: D- Direita, E- Esquerda",nao_terminal,0,NULL,NULL);
+	cadastrar_no(1,"Voce esta no segundo piso, pode ir a: D- Direita, E- Esquerda",nao_terminal,2,opcoes_1,NULL);
 
 	opcao opcoes_2[1] = {{'*',3}};
 	cadastrar_no(2,"",nao_terminal,1,opcoes_2,verificar_fardamento);
@@ -390,6 +395,18 @@ int encontrar_sargenteante(){
 		return 1;
 	}
 
+}
+
+int encontrar_general(){
+	return 1;
+}
+
+int gd_surpresa(){
+	return 1;
+}
+
+int encontrar_professor(){
+	return 1;
 }
 
 /* Funções auxiliares */
