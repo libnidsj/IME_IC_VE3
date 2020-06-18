@@ -215,24 +215,20 @@ void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *op
 //Funcao que cadastra todos os nos da lista encadeada (carregamento da lista)
 void cadastrar_nos() {
 	
-	opcao opcoes_0[4] = {{'A',1},{'B',2},{'C',3},{'D',4}};
+	opcao opcoes_0[4] = {{'A',1},{'B',1},{'C',1},{'D',2}};
 	
 	cadastrar_no(0,"\nVoce chegou ao rancho!\nAgora, o que deseja fazer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nD-Consultar Sargenteante\nOpcao escolhida:  ",raiz,4,opcoes_0,NULL);
 
-	cadastrar_no(1,"Voce nao estava arranchado!\nTorrado!Duvidas?",reinicio,0,NULL,NULL);
+	cadastrar_no(1,"Nao esqueceu de nada?\nTorrado!Duvidas?",reinicio,0,NULL,NULL);
 
-	cadastrar_no(2,"Voce nao estava arranchado!\nTorrado!Duvidas?",reinicio,0,NULL,NULL);
+	opcao opcoes_2[3] = {{'A',3},{'B',4},{'C',5}};
+	cadastrar_no(2,"\nAgora que voce esta arranchado, o que deseja comer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nOpcao escolhida:  ",nao_terminal,3,opcoes_4,encontrar_sargenteante);
 
-	cadastrar_no(3,"Voce nao estava arranchado!\nTorrado!Duvidas?",reinicio,0,NULL,NULL);
+	cadastrar_no(3,"Passou mal no TFM!\nTorrado\nDuvidas?",reinicio,0,NULL,NULL);
 
-	opcao opcoes_4[3] = {{'A',5},{'B',6},{'C',7}};
-	cadastrar_no(4,"\nAgora que voce esta arranchado, o que deseja comer?\nA-Comer feijao\nB-Comer soja\nC-Comer arroz e bife\nOpcao escolhida:  ",nao_terminal,3,opcoes_4,encontrar_sargenteante);
+	cadastrar_no(4,"Paisanaria!\nTorrado!\nDuvidas?",reinicio,0,NULL,NULL);
 
-	cadastrar_no(5,"Passou mal no TFM!\nTorrado\nDuvidas?",reinicio,0,NULL,NULL);
-
-	cadastrar_no(6,"Paisanaria!\nTorrado!\nDuvidas?",reinicio,0,NULL,NULL);
-
-	cadastrar_no(7,"Parabens!\nVoce nao foi torrado esse fim de semana!",terminal,0,NULL,NULL);
+	cadastrar_no(5,"Parabens!\nVoce nao foi torrado esse fim de semana!",terminal,0,NULL,NULL);
 		
 }
 
