@@ -9,6 +9,7 @@ Programa em C que implementa um jogo de labirinto
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<locale.h>
 
 ////////////////////////DEFINICAO DE CONSTANTES////////////////////////
 #define NOME_ARQUIVO_ENTRADA "entrada.txt"
@@ -48,8 +49,10 @@ no *ptr_inicio, *ptr_atual;
 //Referencia para o arquivo de saida
 FILE *arquivo_saida;
 //Criterios globais
-int chave = 0;
-int dias_punido = 0;
+int fardamento = 0;				/* 0 -> Paisano // 1 -> Farda sem gandola // 2 -> Fardamento completo */
+int dias_punido = 0;			/* Contagem de dias punidos */
+int elevador_alunos = 0;		/* 0 -> Não esperou // 1 -> Esperou */
+enum comida {pizza = 0, bk = 1, salada = 2, feijao = 3, soja = 4, arroz_bife = 5}alimentacao;		/* Para uso na checagem da comida pedida pelo ifood ou no rancho */
 
 ////////////////////////////PROTOTIPOS//////////////////////////////
 char *ler_nome_jogador(char *nome_arquivo);
@@ -57,64 +60,22 @@ void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *op
 void cadastrar_nos();
 no *buscar_no(int indice);
 int ler_indice_proximo_no(char opcao);
-int verificar_criterio_acesso(int indice);
-void atualizar_criterios_globais(int indice);
 void apagar_lista();
 
-/*Minigames*/
-int minigame_continencia_andando() {
-    const int linhas = 3, colunas = 11;
-    char espaco[linhas][colunas];
-    //Preencher matriz com espaços
-    for (int i = 0; i < linhas; i++)
-        for (int j = 0; j < colunas; j++)
-            espaco[i][j] = ' ';
-    //Posicionar oficial
-    const int linha_oficial = linhas-1, coluna_oficial = colunas/2;
-    espaco[linha_oficial][coluna_oficial] = 'o';
-    //Posicionar aluno
-    const int linha_aluno = 0;
-    int coluna_aluno = 0;
-    espaco[linha_aluno][coluna_aluno] = 'o';
-    //Execução
-    char movimento;
-    int continencia = 0;
-    while (coluna_aluno != colunas) {
-        puts("Pressione <ENTER> para avancar e <SPACE>+<ENTER> para prestar ou desfazer continencia");
-        //Imprimir matriz
-        for (int i = -1; i <= linhas; i++) {
-            for (int j = 0; j < colunas; j++) {
-                if (i == -1 || i == linhas)
-                    putchar('-');
-                else
-                    printf("%c", espaco[i][j]);
-            }
-            putchar('\n');
-        }
-        //Receber e executar comando
-        fflush(stdin);
-        movimento = (char) getchar();
-        fflush(stdin);
-        if (movimento == ' ')
-            continencia = !continencia;
-        else if (movimento != '\n')
-            continue;
-        espaco[linha_aluno][coluna_aluno++] = ' ';
-        espaco[linha_aluno][coluna_aluno] = continencia ? '*' : 'o';
-        //Checar continencia
-        const int distancia_continencia = 2;
-        int distancia = coluna_oficial-coluna_aluno;
-        if (continencia && (distancia > distancia_continencia || coluna_aluno > coluna_oficial))
-            return 0;
-        if (!continencia && distancia >= 0 && distancia <= distancia_continencia)
-            return 0;
-    }
-    return 1;
-}
+/* Minigames */
+int encontrar_oficial();
+
+/* Funções auxiliares */
+int aleatorio(int val_min, int val_max);		/* Função que gera um número aleatório entre 0 e o máximo dado */
+int verificar_fardamento(int minigame);			/* Função que verifica o fardamento com base na posição, recebe o parametro minigame, com base no indice (0 - encontrar_sargenteante / 1 - encontrar_general ). Baseada na original verificar_criterio_acesso / Note que encontrar_oficial não necessita verificar fardamento, já que paisano, fardamento básico ou completo satisfazem as condições */
+
 
 ///////////////////////////////MAIN///////////////////////////////
 int main() {
-
+	
+	srand(time(NULL));
+	setlocale(LC_ALL, "Portuguese");
+	
 	//Abertura do arquivo de saida
 	if (!(arquivo_saida = fopen(NOME_ARQUIVO_SAIDA, "w"))) {
 		printf("ERRO AO ABRIR O ARQUIVO DE SAIDA!");
@@ -124,8 +85,8 @@ int main() {
 	//Mensagem de boas-vindas
 	char nome_jogador[100];
 	strcpy(nome_jogador, ler_nome_jogador(NOME_ARQUIVO_ENTRADA));
-	printf("Bem-vindo ao LABIRINTO de IC, %s!\n", nome_jogador);
-	fprintf(arquivo_saida, "Bem-vindo ao LABIRINTO de IC, %s!\n", nome_jogador);
+	printf("Bem-vindo ao LABIRINTO de GD, %s!\n", nome_jogador);
+	fprintf(arquivo_saida, "Bem-vindo ao LABIRINTO de GD, %s!\n", nome_jogador);
 
 	//Montagem dos nos do jogo em uma lista encadeada
 	cadastrar_nos();
@@ -135,10 +96,13 @@ int main() {
 
 	//laco de controle do jogo
 	while(1) {
-        if (ptr_atual->fun_ptr != NULL)
+		
+        if (ptr_atual->fun_ptr != NULL){
             ptr_atual->fun_ptr();
+		}
+		
 		//Se no nao eh terminal, apresentar texto e ler a opcao selecionada
-		if(ptr_atual->tipo != terminal) {
+		if(ptr_atual->tipo == nao_terminal) {
 			int indice_proximo_no = -1;
 			while(indice_proximo_no == -1) {
 				char opcao;
@@ -154,19 +118,22 @@ int main() {
 					fprintf(arquivo_saida, "OPCAO INVALIDA!\n");
 				}
 			}
-			//Se o acesso ao proximo no selecionado esta liberado, ler no, atualizar posicao atual e criterios globais
-			if(verificar_criterio_acesso(indice_proximo_no)) {
-				no *ptr_proximo_no = buscar_no(indice_proximo_no);
-				ptr_atual = ptr_proximo_no;
-				atualizar_criterios_globais(indice_proximo_no);
-			}
 		}
+		
+		/* Se é nó de reinicio, o texto já vai ter sido mostrado e o número de dias torrado alterado, apenas deve-se trocar o endereço para o ínicio do jogo e mostrar a quantos dias punidos se está */
+		else if (ptr_atual->tipo == reinicio){
+			printf("Voce está a %d dias punido. \n", dias_punido);
+			fprintf(arquivo_saida, "Voce está a %d dias punido. \n", dias_punido);
+			ptr_atual = buscar_no(0);
+		}
+		
 		//Se no eh terminal, apresentar texto e finalizar programa
-		else {
+		else if (ptr_atual->tipo == terminal){
 			printf("%s", ptr_atual->texto);
 			fprintf(arquivo_saida, "%s", ptr_atual->texto);
 			break;
 		}
+		
 	}
 
 	//Apagar toda a lista e liberar espaco de memoria alocado
@@ -231,16 +198,20 @@ void cadastrar_no(int indice, char *texto, tipo_no tipo, int n_opcoes, opcao *op
 
 //Funcao que cadastra todos os nos da lista encadeada (carregamento da lista)
 void cadastrar_nos() {
+	
 	opcao opcoes_0[2] = {{'D', 1}, {'E', 2}};
 	cadastrar_no(0,
 		"\nENTRADA DO LABIRINTO\nVoce esta na entrada do labirinto e precisa decidir qual direcao seguir.\nD - Ir para a direita\nE - Ir para a esquerda\n\nOpcao escolhida: ",
 		raiz, 2, opcoes_0, NULL);
+		
 	opcao opcoes_1[1] = {{'*', 0}};
 	cadastrar_no(1, "\nCAMINHO SEM SAIDA\nVoce encontrou um caminho sem saida, porem ha uma chave caida no chao.\nDigite qualquer tecla + <ENTER> para pegar a chave e retornar a entrada do labirinto... ",
 		nao_terminal, 1, opcoes_1, NULL);
+		
 	opcao opcoes_2[2] = {{'A', 3}, {'B', 0}};
 	cadastrar_no(2, "\nPASSAGEM BLOQUEADA\nVoce encontrou uma passagem bloqueada com uma fechadura. O que deseja fazer?\nA - Tentar desbloquear a passagem\nB - Voltar a entrada do labirinto\n\nOpcao escolhida: ",
-		nao_terminal, 2, opcoes_2, minigame_continencia_andando);
+		nao_terminal, 2, opcoes_2, encontrar_oficial);
+		
 	cadastrar_no(3, "\nPARABENS! Voce conseguiu desbloquear a passagem com a chave e sair do labirinto!", terminal, 0, NULL, NULL);
 }
 
@@ -273,27 +244,6 @@ int ler_indice_proximo_no(char opcao) {
 	}
 }
 
-//Funcao que verifica se o acesso para um no de determinado indice esta liberado
-int verificar_criterio_acesso(int indice) {
-	if(indice == 1 && chave == 1) {
-		printf("Voce ja pegou a chave nesta parte do labirinto. Permanecendo na entrada...\n");
-		fprintf(arquivo_saida, "Voce ja pegou a chave nesta parte do labirinto. Permanecendo na entrada...\n");
-		return 0;
-	}
-	else if(indice == 3 && chave == 0) {
-		printf("So eh possivel desbloquear a passagem com uma chave. Permanecendo na posicao...\n");
-		fprintf(arquivo_saida, "So eh possivel desbloquear a passagem com uma chave. Permanecendo na posicao...\n");
-		return 0;
-	}
-	return 1;;
-}
-
-//Funcao que atualiza as variaveis globais relacionadas aos criterios de acesso aos nos, caso necessario
-void atualizar_criterios_globais(int indice) {
-	if(indice == 1)
-		chave = 1;
-}
-
 //Funcao que apaga toda a lista, liberando os espacos de memorias alocados
 void apagar_lista() {
 	no *ptr_aux = ptr_inicio;
@@ -310,4 +260,87 @@ void apagar_lista() {
 		free(ptr_aux);
 	}
 	ptr_inicio = NULL;
+}
+
+/*Minigames*/
+int encontrar_oficial() {
+    const int linhas = 3, colunas = 11;
+    char espaco[linhas][colunas];
+    //Preencher matriz com espaços
+    for (int i = 0; i < linhas; i++)
+        for (int j = 0; j < colunas; j++)
+            espaco[i][j] = ' ';
+    //Posicionar oficial
+    const int linha_oficial = linhas-1, coluna_oficial = colunas/2;
+    espaco[linha_oficial][coluna_oficial] = 'o';
+    //Posicionar aluno
+    const int linha_aluno = 0;
+    int coluna_aluno = 0;
+    espaco[linha_aluno][coluna_aluno] = 'o';
+    //Execução
+    char movimento;
+    int continencia = 0;
+    while (coluna_aluno != colunas) {
+        puts("Pressione <ENTER> para avancar e <SPACE>+<ENTER> para prestar ou desfazer continencia");
+        //Imprimir matriz
+        for (int i = -1; i <= linhas; i++) {
+            for (int j = 0; j < colunas; j++) {
+                if (i == -1 || i == linhas)
+                    putchar('-');
+                else
+                    printf("%c", espaco[i][j]);
+            }
+            putchar('\n');
+        }
+        //Receber e executar comando
+        fflush(stdin);
+        movimento = (char) getchar();
+        fflush(stdin);
+        if (movimento == ' ')
+            continencia = !continencia;
+        else if (movimento != '\n')
+            continue;
+        espaco[linha_aluno][coluna_aluno++] = ' ';
+        espaco[linha_aluno][coluna_aluno] = continencia ? '*' : 'o';
+        //Checar continencia
+        const int distancia_continencia = 2;
+        int distancia = coluna_oficial-coluna_aluno;
+        if (continencia && (distancia > distancia_continencia || coluna_aluno > coluna_oficial))
+            return 0;
+        if (!continencia && distancia >= 0 && distancia <= distancia_continencia)
+            return 0;
+    }
+    return 1;
+}
+
+/* Funções auxiliares */
+
+/* Função que gera um número aleatório */
+int aleatorio (int val_min, int val_max){
+	
+	int val_alt = 0;
+	val_alt = rand() % val_max;
+	val_alt = val_alt + val_min;
+	return val_alt;
+	
+}
+
+/* Funcao que verifica o fardamento */
+int verificar_fardamento(int minigame) {
+	if(minigame == 0 && fardamento == 0) {
+		printf("Paisanaria, onde está a farda aluno? Torrado, dúvidas? \n");
+		fprintf(arquivo_saida, "Paisanaria, onde está a farda aluno? Torrado, dúvidas? \n");
+		return 0;
+	}
+	if(minigame == 1 && fardamento == 1) {
+		printf("Fardamento incompleto aluno. Torrado! \n");
+		fprintf(arquivo_saida, "Fardamento incompleto aluno. Torrado! \n");
+		return 0;
+	}
+	if(minigame == 1 && fardamento == 0) {
+		printf("Esqueceu da farda aluno? Torrado! \n");
+		fprintf(arquivo_saida, "Paisanaria, onde está a farda aluno? Torrado, dúvidas? \n");
+		return 0;
+	}
+	return 1;;
 }
